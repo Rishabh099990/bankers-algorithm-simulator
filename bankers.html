@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banker's Algorithm</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;background:linear-gradient(135deg,#071013,#020617);color:#e2e8f0;min-height:100vh;padding:20px}
+.card{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+input{background:rgba(0,0,0,.4);border:.5px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;width:100%;color:#e2e8f0;font-size:13px;outline:none;margin-bottom:8px}
+.btn{border:.5px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;background:rgba(255,255,255,.08);color:#e2e8f0;width:100%;margin-bottom:6px}
+.btn:hover{background:rgba(255,255,255,.14)}
+.blue{background:rgba(59,130,246,.25);color:#93c5fd;border-color:rgba(59,130,246,.4)}
+.green{background:rgba(34,197,94,.2);color:#86efac;border-color:rgba(34,197,94,.35)}
+.amber{background:rgba(245,158,11,.2);color:#fcd34d;border-color:rgba(245,158,11,.35)}
+.red{background:rgba(239,68,68,.2);color:#fca5a5;border-color:rgba(239,68,68,.35)}
+.wrap{display:grid;grid-template-columns:220px 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:12px;color:#64748b;padding:5px 8px;text-align:center;border-bottom:.5px solid rgba(255,255,255,.08)}
+td{padding:5px 8px;text-align:center;border-bottom:.5px solid rgba(255,255,255,.06)}
+td input{width:42px;padding:3px 5px;text-align:center;margin:0}
+.badge{display:inline-flex;padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:6px}
+.ok{background:rgba(34,197,94,.18);color:#86efac;border:.5px solid rgba(34,197,94,.3)}
+.err{background:rgba(239,68,68,.18);color:#fca5a5;border:.5px solid rgba(239,68,68,.3)}
+.warn{background:rgba(245,158,11,.18);color:#fcd34d;border:.5px solid rgba(245,158,11,.3)}
+.tab{padding:5px 14px;border-radius:8px;cursor:pointer;font-size:13px;border:.5px solid transparent;color:#64748b;display:inline-block}
+.tab.on{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#e2e8f0}
+.step{padding:6px 12px;border-radius:6px;font-size:13px;border-left:3px solid transparent;margin-bottom:5px;opacity:0;transform:translateX(-8px);transition:opacity .35s,transform .35s}
+.step.show{opacity:1;transform:none}
+.step.act{border-left-color:#60a5fa;background:rgba(59,130,246,.12)}
+.step.done{border-left-color:#34d399;background:rgba(34,197,94,.08)}
+.chip{display:inline-flex;padding:3px 11px;border-radius:20px;font-size:13px;background:rgba(59,130,246,.2);color:#93c5fd;margin:2px;border:.5px solid rgba(59,130,246,.35)}
+.sc{background:rgba(0,0,0,.25);border-radius:8px;padding:10px 14px;border:.5px solid rgba(255,255,255,.08)}
+h1{font-size:20px;font-weight:500;color:#7dd3fc;margin-bottom:16px}
+h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.lbl{font-size:12px;color:#94a3b8;margin-bottom:3px}
+.log-e{font-size:12px;padding:4px 0;color:#64748b;border-bottom:.5px solid rgba(255,255,255,.06)}
+@media(max-width:650px){.wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Banker's Algorithm — Deadlock Avoidance</h1>
+<div class="wrap">
+
+<div>
+  <div class="card">
+    <h3>Config</h3>
+    <div class="lbl">Processes (n)</div>
+    <input type="number" id="cn" value="5" min="1" max="10">
+    <div class="lbl">Resource types (m)</div>
+    <input type="number" id="cm" value="3" min="1" max="6">
+    <button class="btn blue" onclick="createTables()">Create tables</button>
+  </div>
+  <div class="card">
+    <h3>Available</h3>
+    <input type="text" id="avail" value="3 3 2">
+  </div>
+  <div class="card">
+    <h3>Resource request</h3>
+    <div class="lbl">Process index</div>
+    <input type="number" id="rpid" value="1" min="0">
+    <div class="lbl">Request vector</div>
+    <input type="text" id="rvec" value="1 0 2">
+    <button class="btn amber" onclick="doRequest()">Request</button>
+  </div>
+  <div class="card">
+    <h3>Actions</h3>
+    <button class="btn" onclick="calcNeed()">Calculate need</button>
+    <button class="btn green" onclick="runSafety()">Check safety</button>
+    <button class="btn" onclick="loadEx()">Load example</button>
+    <button class="btn red" onclick="clearLog()">Clear log</button>
+  </div>
+</div>
+
+<div>
+  <div style="margin-bottom:10px">
+    <span class="tab on" onclick="sw('tables',this)">Tables</span>
+    <span class="tab" onclick="sw('anim',this)">Animation</span>
+    <span class="tab" onclick="sw('stats',this)">Stats</span>
+    <span class="tab" onclick="sw('log',this)">Log</span>
+  </div>
+
+  <div id="tab-tables">
+    <div class="card"><h3>Allocation</h3><div id="ta"></div></div>
+    <div class="card"><h3>Max demand</h3><div id="tm"></div></div>
+    <div class="card"><h3>Need (Max − Alloc)</h3><div id="tn"></div></div>
+    <div id="rb" class="card" style="display:none"></div>
+  </div>
+
+  <div id="tab-anim" style="display:none">
+    <div class="card">
+      <h3>Step-by-step</h3>
+      <div id="steps"><span style="color:#475569;font-size:13px">Run safety check first.</span></div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn blue" style="width:auto;padding:6px 16px" onclick="startAnim()">Play</button>
+        <button class="btn" style="width:auto;padding:6px 16px" onclick="resetAnim()">Reset</button>
+      </div>
+    </div>
+    <div class="card" id="seqd" style="display:none"><h3>Safe sequence</h3><div id="seqc"></div></div>
+  </div>
+
+  <div id="tab-stats" style="display:none">
+    <div class="card">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+        <div class="sc"><div style="font-size:12px;color:#64748b">Processes</div><div style="font-size:22px;font-weight:500" id="sn">—</div></div>
+        <div class="sc"><div style="font-size:12px;color:#64748b">Resources</div><div style="font-size:22px;font-weight:500" id="sm">—</div></div>
+        <div class="sc"><div style="font-size:12px;color:#64748b">Checks</div><div style="font-size:22px;font-weight:500" id="sc2">0</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div class="sc"><div style="font-size:12px;color:#64748b">Granted</div><div style="font-size:22px;font-weight:500" id="sg">0</div></div>
+        <div class="sc"><div style="font-size:12px;color:#64748b">Denied</div><div style="font-size:22px;font-weight:500" id="sd">0</div></div>
+      </div>
+      <h3>Utilisation</h3><div id="util"></div>
+    </div>
+  </div>
+
+  <div id="tab-log" style="display:none">
+    <div class="card"><h3>Log</h3><div id="log" style="max-height:340px;overflow-y:auto"></div></div>
+  </div>
+</div>
+</div>
+
+<script>
+let N=5,M=3,alloc=[],mx=[],need=[],avail=[],stepLog=[],stats={c:0,g:0,d:0},anim=null,logs=[];
+
+const $=id=>document.getElementById(id);
+const mat=(r,c)=>Array.from({length:r},()=>Array(c).fill(0));
+const parse=s=>s.trim().split(/\s+/).map(Number);
+const chips=seq=>seq.map((p,i)=>`<span class="chip">P${p}</span>${i<seq.length-1?'<span style="color:#475569;margin:0 2px">→</span>':''}`).join('');
+
+function sw(name,el){
+  ['tables','anim','stats','log'].forEach(t=>$('tab-'+t).style.display=t===name?'':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function tblHTML(id,edit,r,c,data){
+  let h=`<table><thead><tr><th>P</th>${Array.from({length:c},(_,j)=>`<th>R${j}</th>`).join('')}</tr></thead><tbody>`;
+  for(let i=0;i<r;i++){
+    h+=`<tr><td style="color:#475569;font-weight:500">P${i}</td>`;
+    for(let j=0;j<c;j++)
+      h+=edit?`<td><input id="${id}-${i}-${j}" value="${data?.[i]?.[j]||0}"></td>`:`<td id="${id}-${i}-${j}">0</td>`;
+    h+='</tr>';
+  }
+  return h+'</tbody></table>';
+}
+
+function createTables(){
+  N=+$('cn').value||5; M=+$('cm').value||3;
+  alloc=mat(N,M); mx=mat(N,M); need=mat(N,M);
+  $('ta').innerHTML=tblHTML('a',1,N,M,alloc);
+  $('tm').innerHTML=tblHTML('m',1,N,M,mx);
+  $('tn').innerHTML=tblHTML('n',0,N,M,need);
+  $('rb').style.display='none';
+  $('sn').textContent=N; $('sm').textContent=M;
+  log('Tables created','info');
+}
+
+function readTbl(p){
+  return Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>+($(p+'-'+i+'-'+j)?.value)||0));
+}
+
+function calcNeed(){
+  alloc=readTbl('a'); mx=readTbl('m');
+  let warn=false;
+  need=alloc.map((r,i)=>r.map((_,j)=>{let v=mx[i][j]-alloc[i][j];if(v<0)warn=true;return Math.max(0,v);}));
+  need.forEach((r,i)=>r.forEach((v,j)=>{let el=$('n-'+i+'-'+j);if(el){el.textContent=v;el.style.color=v?'#e2e8f0':'#4ade80';}}));
+  log(warn?'Warning: Max < Allocation (clamped)':'Need matrix calculated', warn?'warn':'info');
+}
+
+function safeAlgo(){
+  avail=parse($('avail').value);
+  let work=[...avail],fin=Array(N).fill(false),seq=[],slog=[],cnt=0;
+  while(cnt<N){
+    let found=false;
+    for(let i=0;i<N;i++){
+      if(!fin[i]&&need[i].every((v,j)=>v<=work[j])){
+        let wb=[...work];
+        work=work.map((w,k)=>w+alloc[i][k]);
+        slog.push({pid:i,need:need[i].slice(),wb,work:[...work]});
+        seq.push(i); fin[i]=true; found=true; cnt++;
+      }
+    }
+    if(!found)break;
+  }
+  return{safe:cnt===N,seq,slog};
+}
+
+function runSafety(){
+  calcNeed(); stats.c++; $('sc2').textContent=stats.c;
+  let{safe,seq,slog}=safeAlgo(); stepLog=slog;
+  $('rb').style.display='';
+  $('rb').innerHTML=safe
+    ?`<div class="badge ok">Safe state</div><div style="margin-top:8px">${chips(seq)}</div>`
+    :`<div class="badge err">Unsafe state — potential deadlock</div><div style="margin-top:6px;font-size:13px;color:#64748b">Partial: ${seq.map(p=>'P'+p).join(', ')||'none'}</div>`;
+  log(safe?`Safe: ${seq.map(p=>'P'+p).join(' → ')}`:'Unsafe state','success'[safe?0:1]||'error');
+  buildAnimSteps(slog,seq,safe); renderStats();
+}
+
+function buildAnimSteps(slog,seq,safe){
+  let h=slog.map((s,i)=>`<div class="step" id="s${i}"><strong style="color:#60a5fa">P${s.pid}</strong><span style="color:#64748b;font-size:12px;margin-left:8px">Need[${s.need}] ≤ Work[${s.wb}] → [${s.work}]</span></div>`).join('');
+  if(!safe) h+=`<div class="step" id="s${slog.length}" style="border-left-color:#f87171;background:rgba(239,68,68,.1)">Deadlock — no process can proceed</div>`;
+  $('steps').innerHTML=h||'<span style="color:#475569;font-size:13px">Run safety check first.</span>';
+  $('seqd').style.display=safe?'':'none';
+  if(safe) $('seqc').innerHTML=chips(seq);
+}
+
+function startAnim(){
+  resetAnim();
+  let rows=document.querySelectorAll('.step');
+  if(!rows.length){runSafety();return;}
+  let i=0;
+  anim=setInterval(()=>{
+    if(i>0){rows[i-1].classList.replace('act','done');}
+    if(i<rows.length){rows[i].classList.add('show','act');i++;}
+    else clearInterval(anim);
+  },700);
+}
+
+function resetAnim(){
+  clearInterval(anim);
+  document.querySelectorAll('.step').forEach(r=>r.classList.remove('show','act','done'));
+}
+
+function doRequest(){
+  if(!need.length){alert('Calculate need first.');return;}
+  let pid=+$('rpid').value, req=parse($('rvec').value);
+  avail=parse($('avail').value);
+  if(pid<0||pid>=N){showR('err','Invalid process index.');return;}
+  for(let j=0;j<M;j++){
+    if(req[j]>need[pid][j]){deny(`R${j} exceeds need (need ${need[pid][j]}, got ${req[j]})`,'err');return;}
+    if(req[j]>avail[j]){deny(`R${j} not available (avail ${avail[j]}, got ${req[j]})`,'warn');return;}
+  }
+  let sa=[...avail],sA=alloc[pid].slice(),sN=need[pid].slice();
+  for(let j=0;j<M;j++){avail[j]-=req[j];alloc[pid][j]+=req[j];need[pid][j]-=req[j];}
+  $('avail').value=avail.join(' ');
+  let{safe,seq}=safeAlgo();
+  if(safe){
+    stats.g++; $('sg').textContent=stats.g;
+    showR('ok',`Granted P${pid}. Sequence: ${seq.map(p=>'P'+p).join(' → ')}`);
+    log(`P${pid} [${req}] granted`,'success');
+    for(let j=0;j<M;j++){
+      let a=$('a-'+pid+'-'+j);if(a)a.value=alloc[pid][j];
+      let n=$('n-'+pid+'-'+j);if(n){n.textContent=need[pid][j];n.style.color=need[pid][j]?'#e2e8f0':'#4ade80';}
+    }
+    renderStats();
+  } else {
+    avail=sa;alloc[pid]=sA;need[pid]=sN;$('avail').value=avail.join(' ');
+    deny(`Unsafe state after granting P${pid}`,'err');
+  }
+}
+
+function deny(msg,type){stats.d++;$('sd').textContent=stats.d;showR(type,msg);log(msg,'error');}
+function showR(type,msg){$('rb').style.display='';$('rb').innerHTML=`<div class="badge ${type}">${msg}</div>`;}
+
+function renderStats(){
+  let ta=Array(M).fill(0),tm=Array(M).fill(0);
+  alloc.forEach(r=>r.forEach((v,j)=>ta[j]+=v));
+  mx.forEach(r=>r.forEach((v,j)=>tm[j]+=v));
+  $('util').innerHTML=ta.map((v,j)=>{let p=tm[j]?Math.round(v/tm[j]*100):0;
+    return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>R${j}</span><span>${v}/${tm[j]} (${p}%)</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${p}%;height:100%;background:#3b82f6;border-radius:4px;transition:width .4s"></div></div></div>`;
+  }).join('');
+}
+
+function log(msg,type){
+  let t=new Date().toLocaleTimeString('en-GB',{hour12:false});
+  logs.unshift({t,msg,type});if(logs.length>50)logs.pop();
+  const c={success:'#4ade80',error:'#f87171',warn:'#fbbf24',info:'#94a3b8'};
+  $('log').innerHTML=logs.map(e=>`<div class="log-e"><span style="color:#334155;margin-right:6px">${e.t}</span><span style="color:${c[e.type]||c.info}">${e.msg}</span></div>`).join('');
+}
+
+function clearLog(){logs=[];$('log').innerHTML='';}
+
+function loadEx(){
+  $('cn').value=5;$('cm').value=3;N=5;M=3;createTables();
+  [[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]].forEach((r,i)=>r.forEach((v,j)=>{let e=$('a-'+i+'-'+j);if(e)e.value=v;}));
+  [[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]].forEach((r,i)=>r.forEach((v,j)=>{let e=$('m-'+i+'-'+j);if(e)e.value=v;}));
+  $('avail').value='3 3 2';
+  alloc=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];
+  mx=[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];
+  log('Classic example loaded','info');
+}
+
+createTables();loadEx();runSafety();
+</script>
+</body>
+</html>
