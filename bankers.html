@@ -146,19 +146,23 @@ function tblHTML(id,edit,r,c,data){
   return h+'</tbody></table>';
 }
 
+function readTbl(p){
+  return Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>+($(p+'-'+i+'-'+j)?.value)||0));
+}
+
+
 function createTables(){
+  let oldA=readTbl('a'), oldM=readTbl('m');   
   N=+$('cn').value||5; M=+$('cm').value||3;
-  alloc=mat(N,M); mx=mat(N,M); need=mat(N,M);
+  alloc=Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oldA[i]?.[j]||0));
+  mx   =Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oldM[i]?.[j]||0));
+  need =mat(N,M);
   $('ta').innerHTML=tblHTML('a',1,N,M,alloc);
   $('tm').innerHTML=tblHTML('m',1,N,M,mx);
   $('tn').innerHTML=tblHTML('n',0,N,M,need);
   $('rb').style.display='none';
   $('sn').textContent=N; $('sm').textContent=M;
-  log('Tables created','info');
-}
-
-function readTbl(p){
-  return Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>+($(p+'-'+i+'-'+j)?.value)||0));
+  log('Tables created — values preserved','info');
 }
 
 function calcNeed(){
@@ -194,7 +198,7 @@ function runSafety(){
   $('rb').innerHTML=safe
     ?`<div class="badge ok">Safe state</div><div style="margin-top:8px">${chips(seq)}</div>`
     :`<div class="badge err">Unsafe state — potential deadlock</div><div style="margin-top:6px;font-size:13px;color:#64748b">Partial: ${seq.map(p=>'P'+p).join(', ')||'none'}</div>`;
-  log(safe?`Safe: ${seq.map(p=>'P'+p).join(' → ')}`:'Unsafe state','success'[safe?0:1]||'error');
+  log(safe?`Safe: ${seq.map(p=>'P'+p).join(' → ')}`:'Unsafe state', safe?'success':'error');
   buildAnimSteps(slog,seq,safe); renderStats();
 }
 
@@ -273,16 +277,21 @@ function log(msg,type){
 function clearLog(){logs=[];$('log').innerHTML='';}
 
 function loadEx(){
-  $('cn').value=5;$('cm').value=3;N=5;M=3;createTables();
-  [[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]].forEach((r,i)=>r.forEach((v,j)=>{let e=$('a-'+i+'-'+j);if(e)e.value=v;}));
-  [[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]].forEach((r,i)=>r.forEach((v,j)=>{let e=$('m-'+i+'-'+j);if(e)e.value=v;}));
-  $('avail').value='3 3 2';
+  $('cn').value=5; $('cm').value=3; N=5; M=3;
   alloc=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];
-  mx=[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];
+  mx   =[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];
+  need =mat(N,M);
+  $('ta').innerHTML=tblHTML('a',1,N,M,alloc);
+  $('tm').innerHTML=tblHTML('m',1,N,M,mx);
+  $('tn').innerHTML=tblHTML('n',0,N,M,need);
+  $('rb').style.display='none';
+  $('sn').textContent=N; $('sm').textContent=M;
+  $('avail').value='3 3 2';
   log('Classic example loaded','info');
 }
 
-createTables();loadEx();runSafety();
+loadEx();
+runSafety();
 </script>
 </body>
 </html>
