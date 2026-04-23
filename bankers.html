@@ -39,35 +39,27 @@ h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-
 .lbl{font-size:12px;color:#94a3b8;margin-bottom:3px}
 .hint{font-size:11px;color:#475569;margin-top:-5px;margin-bottom:6px}
 .log-e{font-size:12px;padding:4px 0;color:#64748b;border-bottom:.5px solid rgba(255,255,255,.06)}
-/* FIX 1 — toast notification system replaces alert() */
 #tw{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .tn{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;max-width:300px;opacity:0;transform:translateX(14px);transition:opacity .22s,transform .22s}
 .tn.show{opacity:1;transform:none}
-.te{background:rgba(239,68,68,.95);color:#fff}
-.tw{background:rgba(245,158,11,.95);color:#000}
-.to{background:rgba(34,197,94,.95);color:#000}
-.ti{background:rgba(99,179,237,.92);color:#000}
+.te{background:rgba(239,68,68,.95);color:#fff}.tw{background:rgba(245,158,11,.95);color:#000}
+.to{background:rgba(34,197,94,.95);color:#000}.ti{background:rgba(99,179,237,.92);color:#000}
 @media(max-width:650px){.wrap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<div id="tw"></div><!-- FIX 1: toast container -->
-
+<div id="tw"></div>
 <h1>Banker's Algorithm — Deadlock Avoidance</h1>
 <div class="wrap">
 <div>
   <div class="card">
     <h3>Config</h3>
-    <div class="lbl">Processes (n)</div>
-    <input type="number" id="cn" value="5" min="1" max="10">
-    <div class="lbl">Resource types (m)</div>
-    <input type="number" id="cm" value="3" min="1" max="6">
+    <div class="lbl">Processes (n)</div><input type="number" id="cn" value="5" min="1" max="10">
+    <div class="lbl">Resource types (m)</div><input type="number" id="cm" value="3" min="1" max="6">
     <button class="btn blue" onclick="createTables()">Create tables</button>
   </div>
   <div class="card">
     <h3>Available</h3>
-    <!-- FIX 3: dynamic hint tells user exactly how many values needed -->
     <div class="hint" id="h-av">Enter 3 space-separated integers</div>
     <input type="text" id="avail" value="3 3 2">
   </div>
@@ -75,7 +67,6 @@ h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-
     <h3>Resource request</h3>
     <div class="lbl">Process index (0 – <span id="max-pid">4</span>)</div>
     <input type="number" id="rpid" value="1" min="0">
-    <!-- FIX 2: dynamic hint tells user exactly how many values needed -->
     <div class="lbl">Request vector</div>
     <div class="hint" id="h-rv">Enter 3 space-separated integers</div>
     <input type="text" id="rvec" value="1 0 2">
@@ -89,7 +80,6 @@ h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-
     <button class="btn red" onclick="clearLog()">Clear log</button>
   </div>
 </div>
-
 <div>
   <div style="margin-bottom:10px">
     <span class="tab on" onclick="sw('tables',this)">Tables</span>
@@ -135,52 +125,39 @@ h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-
 </div>
 
 <script>
-let N=5,M=3,alloc=[],mx=[],need=[],avail=[],stepLog=[],stats={c:0,g:0,d:0},anim=null,logs=[];
-let safetyRan=false; // FIX 5: track if safety check has been run
+let N=5,M=3,alloc=[],mx=[],need=[],avail=[],stepLog=[],stats={c:0,g:0,d:0},anim=null,logs=[],safetyRan=false;
 
 const $=id=>document.getElementById(id);
 const mat=(r,c)=>Array.from({length:r},()=>Array(c).fill(0));
 const chips=seq=>seq.map((p,i)=>`<span class="chip">P${p}</span>${i<seq.length-1?'<span style="color:#475569;margin:0 2px">→</span>':''}`).join('');
 
-// ── FIX 1: toast() — fully replaces alert() ───────────────────────────────────
 function toast(msg,type='e'){
   let el=document.createElement('div');
-  el.className=`tn t${type}`;
-  el.textContent=msg;
-  $('tw').appendChild(el);
+  el.className=`tn t${type}`;el.textContent=msg;$('tw').appendChild(el);
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
   setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),260);},3500);
 }
 
-// ── FIX 4: safeParse — returns null on any non-numeric token ──────────────────
 function safeParse(s){
-  let parts=s.trim().split(/\s+/);
-  if(!parts.length||parts[0]==='') return null;
-  for(let p of parts) if(p===''||isNaN(Number(p))||!isFinite(Number(p))) return null;
-  return parts.map(Number);
+  let p=s.trim().split(/\s+/);
+  if(!p.length||p[0]==='') return null;
+  for(let v of p) if(v===''||isNaN(Number(v))||!isFinite(Number(v))) return null;
+  return p.map(Number);
 }
 
-// ── FIX 2+3: validateVec — checks both content (FIX4) and length (FIX2/3) ─────
 function validateVec(id,label){
-  let el=$(id);
-  let parsed=safeParse(el.value);
+  let el=$(id),parsed=safeParse(el.value);
   el.classList.remove('invalid');
-  if(!parsed){
+  if(!parsed||parsed.length!==M){
     el.classList.add('invalid');
-    let m=`${label}: non-numeric value detected. Use integers only.`;
-    toast(m,'e');showR('err',m);log(m,'error');return null;
-  }
-  if(parsed.length!==M){
-    el.classList.add('invalid');
-    let m=`${label}: expected ${M} values, got ${parsed.length}.`;
+    let m=!parsed?`${label}: non-numeric value. Use integers only.`:`${label}: expected ${M} values, got ${parsed?parsed.length:0}.`;
     toast(m,'e');showR('err',m);log(m,'error');return null;
   }
   return parsed;
 }
 
 function updateHints(){
-  $('h-av').textContent=`Enter exactly ${M} space-separated integers`;
-  $('h-rv').textContent=`Enter exactly ${M} space-separated integers`;
+  $('h-av').textContent=$('h-rv').textContent=`Enter exactly ${M} space-separated integers`;
   $('max-pid').textContent=N-1;
 }
 
@@ -195,20 +172,17 @@ function tblHTML(id,edit,r,c,data){
   for(let i=0;i<r;i++){
     h+=`<tr><td style="color:#475569;font-weight:500">P${i}</td>`;
     for(let j=0;j<c;j++)
-      // FIX 7: oninput calls checkNeg to flag Alloc > Max live
       h+=edit?`<td><input id="${id}-${i}-${j}" value="${(data&&data[i])?(data[i][j]||0):0}" oninput="checkNeg(${i},${j})"></td>`:`<td id="${id}-${i}-${j}">0</td>`;
     h+='</tr>';
   }
   return h+'</tbody></table>';
 }
 
-// FIX 7: turn cell red instantly when Allocation > Max
 function checkNeg(i,j){
   let a=$('a-'+i+'-'+j),m=$('m-'+i+'-'+j);
   if(!a||!m) return;
   let bad=(parseInt(a.value)||0)>(parseInt(m.value)||0);
-  a.classList.toggle('neg',bad);
-  m.classList.toggle('neg',bad);
+  a.classList.toggle('neg',bad);m.classList.toggle('neg',bad);
 }
 
 function readTblRC(p,rows,cols){
@@ -216,50 +190,33 @@ function readTblRC(p,rows,cols){
 }
 function readTbl(p){return readTblRC(p,N,M);}
 
-// ── createTables ──────────────────────────────────────────────────────────────
-function createTables(){
-  let oN=N,oM=M;
-  let oA=readTblRC('a',oN,oM),oM2=readTblRC('m',oN,oM);
-  N=parseInt($('cn').value)||5;
-  M=parseInt($('cm').value)||3;
-  alloc=Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>(oA[i]&&oA[i][j]!=null)?oA[i][j]:0));
-  mx   =Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>(oM2[i]&&oM2[i][j]!=null)?oM2[i][j]:0));
-  need =mat(N,M);
+function renderTables(){
   $('ta').innerHTML=tblHTML('a',1,N,M,alloc);
   $('tm').innerHTML=tblHTML('m',1,N,M,mx);
   $('tn').innerHTML=tblHTML('n',0,N,M,need);
   $('rb').style.display='none';
   $('sn').textContent=N;$('sm').textContent=M;
-  safetyRan=false;
-  updateHints();
-  calcNeed(); // FIX 6: always populate need immediately after table creation
+}
+
+function createTables(){
+  let oA=readTblRC('a',N,M),oM=readTblRC('m',N,M);
+  N=parseInt($('cn').value)||5;M=parseInt($('cm').value)||3;
+  alloc=Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oA[i]?.[j]||0));
+  mx   =Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oM[i]?.[j]||0));
+  need=mat(N,M);safetyRan=false;
+  renderTables();updateHints();calcNeed();
   log('Tables created — values preserved','info');
 }
 
-// ── calcNeed ──────────────────────────────────────────────────────────────────
 function calcNeed(){
   alloc=readTbl('a');mx=readTbl('m');
   let bad=[];
-  // FIX 7: detect negative need, clamp to 0, collect bad cells
-  need=alloc.map((row,i)=>row.map((_,j)=>{
-    let v=mx[i][j]-alloc[i][j];
-    if(v<0){bad.push(`P${i}R${j}`);return 0;}
-    return v;
-  }));
-  need.forEach((row,i)=>row.forEach((v,j)=>{
-    let el=$('n-'+i+'-'+j);
-    if(el){el.textContent=v;el.style.color=v===0?'#4ade80':'#e2e8f0';}
-  }));
-  // FIX 8: explicit feedback — never silent
-  if(bad.length){
-    let m=`Allocation > Max at ${bad.join(', ')}. Need clamped to 0. Fix your table.`;
-    showR('warn',m);toast(m,'w');log(m,'warn');
-  } else {
-    log('Need matrix calculated','info');
-  }
+  need=alloc.map((row,i)=>row.map((_,j)=>{let v=mx[i][j]-alloc[i][j];if(v<0){bad.push(`P${i}R${j}`);return 0;}return v;}));
+  need.forEach((row,i)=>row.forEach((v,j)=>{let el=$('n-'+i+'-'+j);if(el){el.textContent=v;el.style.color=v===0?'#4ade80':'#e2e8f0';}}));
+  if(bad.length){let m=`Allocation > Max at ${bad.join(', ')}. Need clamped to 0.`;showR('warn',m);toast(m,'w');log(m,'warn');}
+  else log('Need matrix calculated','info');
 }
 
-// ── safeAlgo ──────────────────────────────────────────────────────────────────
 function safeAlgo(){
   let work=[...avail],fin=Array(N).fill(false),seq=[],slog=[],cnt=0;
   while(cnt<N){
@@ -277,28 +234,19 @@ function safeAlgo(){
   return{safe:cnt===N,seq,slog};
 }
 
-// ── runSafety ─────────────────────────────────────────────────────────────────
 function runSafety(){
   calcNeed();
-  // FIX 3+4: validate available vector before running
-  let av=validateVec('avail','Available');
-  if(!av) return;
-  avail=av;
-  stats.c++;$('sc2').textContent=stats.c;
-  let{safe,seq,slog}=safeAlgo();
-  stepLog=slog;
-  safetyRan=true; // FIX 5
+  let av=validateVec('avail','Available');if(!av)return;
+  avail=av;stats.c++;$('sc2').textContent=stats.c;
+  let{safe,seq,slog}=safeAlgo();stepLog=slog;safetyRan=true;
   $('rb').style.display='';
   $('rb').innerHTML=safe
     ?`<div class="badge ok">Safe state</div><div style="margin-top:8px">${chips(seq)}</div>`
-    :`<div class="badge err">Unsafe state — potential deadlock</div>
-      <div style="margin-top:6px;font-size:13px;color:#64748b">Partial: ${seq.map(p=>'P'+p).join(', ')||'none'}</div>`;
+    :`<div class="badge err">Unsafe state — potential deadlock</div><div style="margin-top:6px;font-size:13px;color:#64748b">Partial: ${seq.map(p=>'P'+p).join(', ')||'none'}</div>`;
   log(safe?`Safe: ${seq.map(p=>'P'+p).join(' → ')}`:'Unsafe state detected',safe?'success':'error');
-  buildAnimSteps(slog,seq,safe);
-  renderStats();
+  buildAnimSteps(slog,seq,safe);renderStats();
 }
 
-// ── buildAnimSteps ────────────────────────────────────────────────────────────
 function buildAnimSteps(slog,seq,safe){
   let h=slog.map((s,i)=>`<div class="step" id="s${i}"><strong style="color:#60a5fa">P${s.pid}</strong><span style="color:#64748b;font-size:12px;margin-left:8px">Need[${s.need}] ≤ Work[${s.wb}] → [${s.work}]</span></div>`).join('');
   if(!safe) h+=`<div class="step" id="s${slog.length}" style="border-left-color:#f87171;background:rgba(239,68,68,.1)">Deadlock — no process can proceed</div>`;
@@ -307,17 +255,10 @@ function buildAnimSteps(slog,seq,safe){
   if(safe)$('seqc').innerHTML=chips(seq);
 }
 
-// ── startAnim ─────────────────────────────────────────────────────────────────
-// FIX 5: block animation if safety has never been run
 function startAnim(){
-  if(!safetyRan){
-    toast('Run "Check safety" first before playing animation.','w');
-    showR('warn','Please run "Check safety" before playing the animation.');
-    return;
-  }
+  if(!safetyRan){toast('Run "Check safety" first.','w');showR('warn','Run "Check safety" before animation.');return;}
   resetAnim();
-  let rows=document.querySelectorAll('.step');
-  if(!rows.length){runSafety();return;}
+  let rows=document.querySelectorAll('.step');if(!rows.length){runSafety();return;}
   let i=0;
   anim=setInterval(()=>{
     if(i>0)rows[i-1].classList.replace('act','done');
@@ -331,31 +272,16 @@ function resetAnim(){
   document.querySelectorAll('.step').forEach(r=>r.classList.remove('show','act','done'));
 }
 
-// ── doRequest ─────────────────────────────────────────────────────────────────
 function doRequest(){
-  // FIX 1: no alert() — use toast and showR instead
-  // FIX 6: need must already be populated
-  if(!need.length||!need[0]||!need[0].length){
-    let m='Need matrix is empty. Click "Check safety" first.';
-    toast(m,'e');showR('err',m);return;
-  }
-  // FIX 8: validate process index — clear visible error
+  if(!need.length||!need[0]?.length){let m='Run "Check safety" first.';toast(m,'e');showR('err',m);return;}
   let pid=parseInt($('rpid').value);
-  if(isNaN(pid)||pid<0||pid>=N){
-    let m=`Invalid process index. Must be 0 – ${N-1}.`;
-    toast(m,'e');showR('err',m);return;
-  }
-  // FIX 2+4: validate request vector — length and numeric content
-  let req=validateVec('rvec','Request vector');
-  if(!req) return;
-  // FIX 3+4: validate available
-  let av=validateVec('avail','Available');
-  if(!av) return;
+  if(isNaN(pid)||pid<0||pid>=N){let m=`Invalid process index. Must be 0–${N-1}.`;toast(m,'e');showR('err',m);return;}
+  let req=validateVec('rvec','Request vector');if(!req)return;
+  let av=validateVec('avail','Available');if(!av)return;
   avail=av;
-
   for(let j=0;j<M;j++){
-    if(req[j]>need[pid][j]){deny(`R${j} exceeds remaining need (need ${need[pid][j]}, requested ${req[j]})`,'err');return;}
-    if(req[j]>avail[j])    {deny(`R${j} not available (available ${avail[j]}, requested ${req[j]})`,'warn');return;}
+    if(req[j]>need[pid][j]){deny(`R${j} exceeds need (need ${need[pid][j]}, got ${req[j]})`,'err');return;}
+    if(req[j]>avail[j])    {deny(`R${j} not available (avail ${avail[j]}, got ${req[j]})`,'warn');return;}
   }
   let sa=[...avail],sA=alloc[pid].slice(),sN=need[pid].slice();
   for(let j=0;j<M;j++){avail[j]-=req[j];alloc[pid][j]+=req[j];need[pid][j]-=req[j];}
@@ -372,17 +298,15 @@ function doRequest(){
     }
     renderStats();
   } else {
-    avail=sa;alloc[pid]=sA;need[pid]=sN;
-    $('avail').value=avail.join(' ');
+    avail=sa;alloc[pid]=sA;need[pid]=sN;$('avail').value=avail.join(' ');
     deny(`Unsafe — P${pid} request denied and rolled back`,'err');
-    toast(`Request denied for P${pid}: would cause unsafe state.`,'e');
+    toast(`Request denied for P${pid}: unsafe state.`,'e');
   }
 }
 
 function deny(msg,type){stats.d++;$('sd').textContent=stats.d;showR(type,msg);log(msg,'error');}
 function showR(type,msg){$('rb').style.display='';$('rb').innerHTML=`<div class="badge ${type}">${msg}</div>`;}
 
-// ── renderStats ───────────────────────────────────────────────────────────────
 function renderStats(){
   let ta=Array(M).fill(0),tm=Array(M).fill(0);
   alloc.forEach(r=>r.forEach((v,j)=>ta[j]+=v));
@@ -392,7 +316,6 @@ function renderStats(){
   }).join('');
 }
 
-// ── log / clearLog ────────────────────────────────────────────────────────────
 function log(msg,type){
   let t=new Date().toLocaleTimeString('en-GB',{hour12:false});
   logs.unshift({t,msg,type});if(logs.length>50)logs.pop();
@@ -401,28 +324,19 @@ function log(msg,type){
 }
 function clearLog(){logs=[];$('log').innerHTML='';}
 
-// ── loadEx ────────────────────────────────────────────────────────────────────
 function loadEx(){
   N=5;M=3;$('cn').value=5;$('cm').value=3;
   alloc=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];
   mx   =[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];
-  need =mat(N,M);
-  $('ta').innerHTML=tblHTML('a',1,N,M,alloc);
-  $('tm').innerHTML=tblHTML('m',1,N,M,mx);
-  $('tn').innerHTML=tblHTML('n',0,N,M,need);
-  $('rb').style.display='none';
-  $('sn').textContent=N;$('sm').textContent=M;
+  need=mat(N,M);safetyRan=false;
+  renderTables();
   $('avail').value='3 3 2';
-  $('avail').classList.remove('invalid');
-  $('rvec').classList.remove('invalid');
-  safetyRan=false;
+  ['avail','rvec'].forEach(id=>$(id).classList.remove('invalid'));
   updateHints();
   log('Classic example loaded (Silberschatz)','info');
 }
 
-// ── init — FIX 6: need is calculated and shown immediately on page load ────────
-loadEx();
-runSafety();
+loadEx();runSafety();
 </script>
 </body>
 </html>
