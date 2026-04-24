@@ -131,7 +131,16 @@ function deny(msg,t){stats.d++;$('sd').textContent=stats.d;showR(t,msg);log(msg,
 function showR(t,msg){$('rb').style.display='';$('rb').innerHTML=`<div class="badge ${t}">${msg}</div>`;}
 function renderStats(){let ta=Array(M).fill(0),tm=Array(M).fill(0);alloc.forEach(r=>r.forEach((v,j)=>ta[j]+=v));mx.forEach(r=>r.forEach((v,j)=>tm[j]+=v));$('util').innerHTML=ta.map((v,j)=>{let p=tm[j]?Math.round(v/tm[j]*100):0;return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>R${j}</span><span>${v}/${tm[j]} (${p}%)</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${p}%;height:100%;background:#3b82f6;border-radius:4px;transition:width .4s"></div></div></div>`;}).join('');let wv=Object.values(sim.wt);$('aw').textContent=wv.length?Math.round(wv.reduce((a,b)=>a+b,0)/wv.length)+'t':'—';let done=Object.entries(sim.ta);$('tac').innerHTML=done.length?done.map(([p,t])=>{let w=Math.min(100,t/sim.seq.length*100);return`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>P${p}</span><span>${t}t</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${w}%;height:100%;background:${sim.C[p%sim.C.length]};border-radius:4px;transition:width .4s"></div></div></div>`;}).join(''):'<span style="color:#475569;font-size:12px">Run Auto simulate first.</span>';}
 function log(msg,type){let t=new Date().toLocaleTimeString('en-GB',{hour12:false});logs.unshift({t,msg,type});if(logs.length>80)logs.pop();const c={success:'#4ade80',error:'#f87171',warn:'#fbbf24',info:'#94a3b8'};$('log').innerHTML=logs.map(e=>`<div class="log-e"><span style="color:#334155;margin-right:6px">${e.t}</span><span style="color:${c[e.type]||c.info}">${e.msg}</span></div>`).join('');}
-function resetSim(){stopAuto();Object.assign(sim,{tick:0,ctx:0,gl:[],seq:[],idx:0,wt:{},ta:{}});safetyRan=false;logs=[];$('log').innerHTML='';$('rb').style.display='none';$('gantt').innerHTML='';$('gl').innerHTML='';$('psc').style.display='none';$('tv').textContent=$('cv').textContent=$('dv').textContent=0;loadEx();toast('Reset.','i');}
+function resetSim(){
+  if(!confirm("Are you sure you want to reset the simulation?")){
+    return;
+  }
+
+  sim = {alloc:[], max:[], need:[], avail:[], seq:[], logs:[]};
+  $('res').innerHTML = '';
+  $('log').innerHTML = '';
+  toast("Simulation reset successfully", 'o');
+}
 function loadEx(){N=5;M=3;$('cn').value=5;$('cm').value=3;alloc=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];mx=[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];need=mat(N,M);safetyRan=false;renderTbls();$('avail').value='3 3 2';['avail','rvec'].forEach(id=>$(id).classList.remove('invalid'));updateHints();log('Example loaded','info');}
 loadEx();runSafety();
 </script>
