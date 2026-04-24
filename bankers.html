@@ -85,6 +85,22 @@ function tblHTML(id,edit,r,c,data){
   for(let i=0;i<r;i++){h+=`<tr><td style="color:#475569;font-weight:500">P${i}</td>`;for(let j=0;j<c;j++)h+=edit?`<td><input id="${id}-${i}-${j}" value="${data?.[i]?.[j]||0}" oninput="chk(${i},${j})"></td>`:`<td id="${id}-${i}-${j}">0</td>`;h+='</tr>';}
   return h+'</tbody></table>';
 }
+  function exportSequence(){
+  if(!sim.seq || sim.seq.length === 0){
+    toast("Run safety check first.", 'w');
+    return;
+  }
+
+  let sequence = sim.seq.map(p => 'P' + p).join(' → ');
+  
+  navigator.clipboard.writeText(sequence).then(()=>{
+    toast("Safe sequence copied!", 'o');
+  }).catch(()=>{
+    toast("Copy failed.", 'e');
+  });
+
+  log("Safe sequence exported", "info");
+}
 function chk(i,j){let a=$('a-'+i+'-'+j),m=$('m-'+i+'-'+j);if(!a||!m)return;let bad=(parseInt(a.value)||0)>(parseInt(m.value)||0);a.classList.toggle('neg',bad);m.classList.toggle('neg',bad);}
 function rdRC(p,r,c){return Array.from({length:r},(_,i)=>Array.from({length:c},(_,j)=>{let e=$(p+'-'+i+'-'+j);return e?(parseInt(e.value)||0):0;}));}
 function rd(p){return rdRC(p,N,M);}
