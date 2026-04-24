@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Banker's Algorithm</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banker's Algorithm</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;font-size:14px;background:linear-gradient(135deg,#071013,#020617);color:#e2e8f0;min-height:100vh;padding:20px}
 .card{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 18px;margin-bottom:10px}
 input{background:rgba(0,0,0,.4);border:.5px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;width:100%;color:#e2e8f0;font-size:13px;outline:none;margin-bottom:8px;transition:border-color .2s}
 input.invalid{border-color:rgba(239,68,68,.7)!important}
-.btn{border:.5px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;background:rgba(255,255,255,.08);color:#e2e8f0;width:100%;margin-bottom:6px}
-.btn:hover{background:rgba(255,255,255,.14)}
-.blue{background:rgba(59,130,246,.25);color:#93c5fd;border-color:rgba(59,130,246,.4)}
-.green{background:rgba(34,197,94,.2);color:#86efac;border-color:rgba(34,197,94,.35)}
-.amber{background:rgba(245,158,11,.2);color:#fcd34d;border-color:rgba(245,158,11,.35)}
-.red{background:rgba(239,68,68,.2);color:#fca5a5;border-color:rgba(239,68,68,.35)}
+.btn{border:.5px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;background:rgba(255,255,255,.08);color:#e2e8f0;width:100%;margin-bottom:6px}.btn:hover{background:rgba(255,255,255,.14)}
+.blue{background:rgba(59,130,246,.25);color:#93c5fd;border-color:rgba(59,130,246,.4)}.green{background:rgba(34,197,94,.2);color:#86efac;border-color:rgba(34,197,94,.35)}
+.amber{background:rgba(245,158,11,.2);color:#fcd34d;border-color:rgba(245,158,11,.35)}.red{background:rgba(239,68,68,.2);color:#fca5a5;border-color:rgba(239,68,68,.35)}
 .purple{background:rgba(139,92,246,.2);color:#c4b5fd;border-color:rgba(139,92,246,.35)}
 .wrap{display:grid;grid-template-columns:220px 1fr;gap:12px}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -24,42 +19,21 @@ td{padding:5px 8px;text-align:center;border-bottom:.5px solid rgba(255,255,255,.
 td input{width:42px;padding:3px 5px;text-align:center;margin:0}
 td input.neg{border-color:rgba(239,68,68,.7);background:rgba(239,68,68,.08)}
 .badge{display:inline-flex;padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:6px}
-.ok{background:rgba(34,197,94,.18);color:#86efac;border:.5px solid rgba(34,197,94,.3)}
-.err{background:rgba(239,68,68,.18);color:#fca5a5;border:.5px solid rgba(239,68,68,.3)}
-.warn{background:rgba(245,158,11,.18);color:#fcd34d;border:.5px solid rgba(245,158,11,.3)}
-.tab{padding:5px 14px;border-radius:8px;cursor:pointer;font-size:13px;border:.5px solid transparent;color:#64748b;display:inline-block}
-.tab.on{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#e2e8f0}
-.step{padding:6px 12px;border-radius:6px;font-size:13px;border-left:3px solid transparent;margin-bottom:5px;opacity:0;transform:translateX(-8px);transition:opacity .35s,transform .35s}
-.step.show{opacity:1;transform:none}
-.step.act{border-left-color:#60a5fa;background:rgba(59,130,246,.12)}
-.step.done{border-left-color:#34d399;background:rgba(34,197,94,.08)}
+.ok{background:rgba(34,197,94,.18);color:#86efac;border:.5px solid rgba(34,197,94,.3)}.err{background:rgba(239,68,68,.18);color:#fca5a5;border:.5px solid rgba(239,68,68,.3)}.warn{background:rgba(245,158,11,.18);color:#fcd34d;border:.5px solid rgba(245,158,11,.3)}
+.tab{padding:5px 14px;border-radius:8px;cursor:pointer;font-size:13px;border:.5px solid transparent;color:#64748b;display:inline-block}.tab.on{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#e2e8f0}
+.step{padding:6px 12px;border-radius:6px;font-size:13px;border-left:3px solid transparent;margin-bottom:5px;opacity:0;transform:translateX(-8px);transition:opacity .35s,transform .35s}.step.show{opacity:1;transform:none}.step.act{border-left-color:#60a5fa;background:rgba(59,130,246,.12)}.step.done{border-left-color:#34d399;background:rgba(34,197,94,.08)}
 .chip{display:inline-flex;padding:3px 11px;border-radius:20px;font-size:13px;background:rgba(59,130,246,.2);color:#93c5fd;margin:2px;border:.5px solid rgba(59,130,246,.35)}
 .sc{background:rgba(0,0,0,.25);border-radius:8px;padding:10px 14px;border:.5px solid rgba(255,255,255,.08)}
-h1{font-size:20px;font-weight:500;color:#7dd3fc;margin-bottom:16px}
-h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-.lbl{font-size:12px;color:#94a3b8;margin-bottom:3px}
-.hint{font-size:11px;color:#475569;margin-top:-5px;margin-bottom:6px}
-.log-e{font-size:12px;padding:4px 0;color:#64748b;border-bottom:.5px solid rgba(255,255,255,.06)}
-/* toast */
+h1{font-size:20px;font-weight:500;color:#7dd3fc;margin-bottom:16px}h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.lbl{font-size:12px;color:#94a3b8;margin-bottom:3px}.hint{font-size:11px;color:#475569;margin-top:-5px;margin-bottom:6px}.log-e{font-size:12px;padding:4px 0;color:#64748b;border-bottom:.5px solid rgba(255,255,255,.06)}
 #tw{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.tn{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;max-width:300px;opacity:0;transform:translateX(14px);transition:opacity .22s,transform .22s}
-.tn.show{opacity:1;transform:none}
-.te{background:rgba(239,68,68,.95);color:#fff}.tw{background:rgba(245,158,11,.95);color:#000}
-.to{background:rgba(34,197,94,.95);color:#000}.ti{background:rgba(99,179,237,.92);color:#000}
-/* gantt */
+.tn{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;max-width:300px;opacity:0;transform:translateX(14px);transition:opacity .22s,transform .22s}.tn.show{opacity:1;transform:none}
+.te{background:rgba(239,68,68,.95);color:#fff}.tw{background:rgba(245,158,11,.95);color:#000}.to{background:rgba(34,197,94,.95);color:#000}.ti{background:rgba(99,179,237,.92);color:#000}
 #gantt{display:flex;flex-wrap:wrap;gap:3px;padding:8px 0;min-height:36px;align-items:center}
-.gc{height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;min-width:28px;padding:0 6px;opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .2s,transform .25s}
-.gc.show{opacity:1;transform:scaleX(1)}
-/* process state badges */
-.pstate{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:500}
-.ps-safe{background:rgba(34,197,94,.2);color:#86efac}
-.ps-seq{background:rgba(59,130,246,.2);color:#93c5fd}
-.ps-unsafe{background:rgba(239,68,68,.2);color:#fca5a5}
-.ps-pending{background:rgba(100,116,139,.2);color:#94a3b8}
-/* tick counter */
-.tick-box{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 14px;background:rgba(0,0,0,.25);border-radius:8px;border:.5px solid rgba(255,255,255,.08)}
-.tick-val{font-size:22px;font-weight:500;color:#7dd3fc;min-width:36px}
-.tick-lbl{font-size:12px;color:#64748b}
+.gc{height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;min-width:28px;padding:0 6px;opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .2s,transform .25s}.gc.show{opacity:1;transform:scaleX(1)}
+.pstate{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:500}.ps-seq{background:rgba(59,130,246,.2);color:#93c5fd}.ps-unsafe{background:rgba(239,68,68,.2);color:#fca5a5}.ps-pending{background:rgba(100,116,139,.2);color:#94a3b8}
+.tick-box{display:flex;gap:10px;margin-bottom:10px;padding:8px 14px;background:rgba(0,0,0,.25);border-radius:8px;border:.5px solid rgba(255,255,255,.08)}
+.tick-val{font-size:22px;font-weight:500;color:#7dd3fc}.tick-lbl{font-size:12px;color:#64748b}
 @media(max-width:650px){.wrap{grid-template-columns:1fr}}
 </style>
 </head>
@@ -67,494 +41,83 @@ h3{font-size:12px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-
 <div id="tw"></div>
 <h1>Banker's Algorithm — Deadlock Avoidance</h1>
 <div class="wrap">
-
-<!-- LEFT PANEL -->
 <div>
-  <div class="card">
-    <h3>Config</h3>
-    <div class="lbl">Processes (n)</div><input type="number" id="cn" value="5" min="1" max="10">
-    <div class="lbl">Resource types (m)</div><input type="number" id="cm" value="3" min="1" max="6">
-    <button class="btn blue" onclick="createTables()">Create tables</button>
-  </div>
-  <div class="card">
-    <h3>Available</h3>
-    <div class="hint" id="h-av">Enter 3 space-separated integers</div>
-    <input type="text" id="avail" value="3 3 2">
-  </div>
-  <div class="card">
-    <h3>Resource request</h3>
-    <div class="lbl">Process index (0 – <span id="max-pid">4</span>)</div>
-    <input type="number" id="rpid" value="1" min="0">
-    <div class="lbl">Request vector</div>
-    <div class="hint" id="h-rv">Enter 3 space-separated integers</div>
-    <input type="text" id="rvec" value="1 0 2">
-    <button class="btn amber" onclick="doRequest()">Request</button>
-  </div>
-  <div class="card">
-    <h3>Actions</h3>
-    <button class="btn" onclick="calcNeed()">Calculate need</button>
-    <button class="btn green" onclick="runSafety()">Check safety</button>
-    <button class="btn purple" onclick="autoStep()">▶ Auto simulate</button>
-    <button class="btn" onclick="loadEx()">Load example</button>
-    <button class="btn red" onclick="resetSim()">Reset simulation</button>
-  </div>
+  <div class="card"><h3>Config</h3><div class="lbl">Processes (n)</div><input type="number" id="cn" value="5" min="1" max="10"><div class="lbl">Resource types (m)</div><input type="number" id="cm" value="3" min="1" max="6"><button class="btn blue" onclick="createTables()">Create tables</button></div>
+  <div class="card"><h3>Available</h3><div class="hint" id="h-av"></div><input type="text" id="avail" value="3 3 2"></div>
+  <div class="card"><h3>Resource request</h3><div class="lbl">Process index (0–<span id="max-pid">4</span>)</div><input type="number" id="rpid" value="1" min="0"><div class="lbl">Request vector</div><div class="hint" id="h-rv"></div><input type="text" id="rvec" value="1 0 2"><button class="btn amber" onclick="doRequest()">Request</button></div>
+  <div class="card"><h3>Actions</h3><button class="btn" onclick="calcNeed()">Calculate need</button><button class="btn green" onclick="runSafety()">Check safety</button><button class="btn purple" onclick="autoStep()">▶ Auto simulate</button><button class="btn" onclick="loadEx()">Load example</button><button class="btn red" onclick="resetSim()">Reset simulation</button></div>
 </div>
-
-<!-- RIGHT PANEL -->
 <div>
   <div style="margin-bottom:10px">
-    <span class="tab on" onclick="sw('tables',this)">Tables</span>
-    <span class="tab" onclick="sw('anim',this)">Animation</span>
-    <span class="tab" onclick="sw('gantt',this)">Gantt</span>
-    <span class="tab" onclick="sw('stats',this)">Stats</span>
-    <span class="tab" onclick="sw('log',this)">Log</span>
+    <span class="tab on" onclick="sw('tables',this)">Tables</span><span class="tab" onclick="sw('anim',this)">Animation</span><span class="tab" onclick="sw('gantt',this)">Gantt</span><span class="tab" onclick="sw('stats',this)">Stats</span><span class="tab" onclick="sw('log',this)">Log</span>
   </div>
-
-  <!-- TABLES TAB -->
   <div id="tab-tables">
-    <div class="card"><h3>Allocation</h3><div id="ta"></div></div>
-    <div class="card"><h3>Max demand</h3><div id="tm"></div></div>
-    <div class="card"><h3>Need (Max − Alloc)</h3><div id="tn"></div></div>
+    <div class="card"><h3>Allocation</h3><div id="ta"></div></div><div class="card"><h3>Max demand</h3><div id="tm"></div></div><div class="card"><h3>Need (Max−Alloc)</h3><div id="tn"></div></div>
     <div id="rb" class="card" style="display:none"></div>
-    <!-- Process state table — inspired by app.py process lifecycle -->
-    <div class="card" id="proc-state-card" style="display:none">
-      <h3>Process states</h3>
-      <table id="proc-tbl">
-        <thead><tr><th>PID</th><th>State</th><th>Need met?</th><th>Position in sequence</th></tr></thead>
-        <tbody id="proc-tbody"></tbody>
-      </table>
-    </div>
+    <div class="card" id="psc" style="display:none"><h3>Process states</h3><table><thead><tr><th>PID</th><th>State</th><th>Need met?</th><th>Position</th></tr></thead><tbody id="pb"></tbody></table></div>
   </div>
-
-  <!-- ANIMATION TAB -->
-  <div id="tab-anim" style="display:none">
-    <div class="card">
-      <h3>Step-by-step execution</h3>
-      <div id="steps"><span style="color:#475569;font-size:13px">Run safety check first.</span></div>
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn blue" style="width:auto;padding:6px 16px" onclick="startAnim()">Play</button>
-        <button class="btn" style="width:auto;padding:6px 16px" onclick="resetAnim()">Reset</button>
-      </div>
-    </div>
-    <div class="card" id="seqd" style="display:none"><h3>Safe sequence</h3><div id="seqc"></div></div>
-  </div>
-
-  <!-- GANTT TAB — inspired by gantt_log in app.py -->
+  <div id="tab-anim" style="display:none"><div class="card"><h3>Step-by-step</h3><div id="steps"><span style="color:#475569;font-size:13px">Run safety check first.</span></div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn blue" style="width:auto;padding:6px 16px" onclick="startAnim()">Play</button><button class="btn" style="width:auto;padding:6px 16px" onclick="resetAnim()">Reset</button></div></div><div class="card" id="seqd" style="display:none"><h3>Safe sequence</h3><div id="seqc"></div></div></div>
   <div id="tab-gantt" style="display:none">
-    <div class="card">
-      <h3>Execution timeline (Gantt chart)</h3>
-      <div style="font-size:12px;color:#475569;margin-bottom:8px">Each block = one process in the safe sequence. Builds as simulation ticks.</div>
-      <div id="gantt"></div>
-      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" id="gantt-legend"></div>
-    </div>
-    <div class="card">
-      <!-- tick counter — from app.py sim_state tick -->
-      <div class="tick-box">
-        <div><div class="tick-lbl">Simulation tick</div><div class="tick-val" id="tick-val">0</div></div>
-        <div style="margin-left:16px"><div class="tick-lbl">Context switches</div><div class="tick-val" id="ctx-val">0</div></div>
-        <div style="margin-left:16px"><div class="tick-lbl">Processes done</div><div class="tick-val" id="done-val">0</div></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn blue" style="width:auto;padding:6px 16px" onclick="tickStep()">Step →</button>
-        <button class="btn purple" style="width:auto;padding:6px 16px" onclick="autoStep()">▶ Auto</button>
-        <button class="btn" style="width:auto;padding:6px 16px" onclick="stopAuto()">■ Stop</button>
-      </div>
-    </div>
+    <div class="card"><h3>Execution timeline</h3><div style="font-size:12px;color:#475569;margin-bottom:8px">Each block = one process in safe sequence.</div><div id="gantt"></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" id="gl"></div></div>
+    <div class="card"><div class="tick-box"><div><div class="tick-lbl">Tick</div><div class="tick-val" id="tv">0</div></div><div style="margin-left:16px"><div class="tick-lbl">Ctx switches</div><div class="tick-val" id="cv">0</div></div><div style="margin-left:16px"><div class="tick-lbl">Done</div><div class="tick-val" id="dv">0</div></div></div><div style="display:flex;gap:8px"><button class="btn blue" style="width:auto;padding:6px 16px" onclick="tickStep()">Step →</button><button class="btn purple" style="width:auto;padding:6px 16px" onclick="autoStep()">▶ Auto</button><button class="btn" style="width:auto;padding:6px 16px" onclick="stopAuto()">■ Stop</button></div></div>
   </div>
-
-  <!-- STATS TAB -->
-  <div id="tab-stats" style="display:none">
-    <div class="card">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-        <div class="sc"><div style="font-size:12px;color:#64748b">Processes</div><div style="font-size:22px;font-weight:500" id="sn">—</div></div>
-        <div class="sc"><div style="font-size:12px;color:#64748b">Resources</div><div style="font-size:22px;font-weight:500" id="sm">—</div></div>
-        <div class="sc"><div style="font-size:12px;color:#64748b">Safety checks</div><div style="font-size:22px;font-weight:500" id="sc2">0</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-        <div class="sc"><div style="font-size:12px;color:#64748b">Granted</div><div style="font-size:22px;font-weight:500" id="sg">0</div></div>
-        <div class="sc"><div style="font-size:12px;color:#64748b">Denied</div><div style="font-size:22px;font-weight:500" id="sd">0</div></div>
-        <div class="sc"><div style="font-size:12px;color:#64748b">Avg wait time</div><div style="font-size:22px;font-weight:500" id="avg-wt">—</div></div>
-      </div>
-      <h3>Resource utilisation</h3><div id="util"></div>
-      <!-- per-process turnaround — from app.py compute_stats -->
-      <h3 style="margin-top:12px">Per-process turnaround</h3>
-      <div id="ta-chart"></div>
-    </div>
-  </div>
-
-  <!-- LOG TAB -->
-  <div id="tab-log" style="display:none">
-    <div class="card"><h3>Audit log</h3><div id="log" style="max-height:340px;overflow-y:auto"></div></div>
-  </div>
+  <div id="tab-stats" style="display:none"><div class="card">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px"><div class="sc"><div style="font-size:12px;color:#64748b">Processes</div><div style="font-size:22px;font-weight:500" id="sn">—</div></div><div class="sc"><div style="font-size:12px;color:#64748b">Resources</div><div style="font-size:22px;font-weight:500" id="sm">—</div></div><div class="sc"><div style="font-size:12px;color:#64748b">Checks</div><div style="font-size:22px;font-weight:500" id="sc2">0</div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px"><div class="sc"><div style="font-size:12px;color:#64748b">Granted</div><div style="font-size:22px;font-weight:500" id="sg">0</div></div><div class="sc"><div style="font-size:12px;color:#64748b">Denied</div><div style="font-size:22px;font-weight:500" id="sd">0</div></div><div class="sc"><div style="font-size:12px;color:#64748b">Avg wait</div><div style="font-size:22px;font-weight:500" id="aw">—</div></div></div>
+    <h3>Resource utilisation</h3><div id="util"></div><h3 style="margin-top:12px">Per-process turnaround</h3><div id="tac"></div>
+  </div></div>
+  <div id="tab-log" style="display:none"><div class="card"><h3>Audit log</h3><div id="log" style="max-height:340px;overflow-y:auto"></div></div></div>
 </div>
 </div>
-
 <script>
-// ── State ─────────────────────────────────────────────────────────────────────
-let N=5,M=3,alloc=[],mx=[],need=[],avail=[],stepLog=[],logs=[],safetyRan=false;
-let stats={c:0,g:0,d:0};
+let N=5,M=3,alloc=[],mx=[],need=[],avail=[],stepLog=[],logs=[],safetyRan=false,stats={c:0,g:0,d:0},animTimer=null;
+const sim={tick:0,ctx:0,gl:[],seq:[],idx:0,wt:{},ta:{},timer:null,C:['#3B8BD4','#1D9E75','#D85A30','#7F77DD','#E24B4A','#BA7517','#D4537E','#639922']};
+const $=id=>document.getElementById(id),mat=(r,c)=>Array.from({length:r},()=>Array(c).fill(0));
+const chips=s=>s.map((p,i)=>`<span class="chip">P${p}</span>${i<s.length-1?'<span style="color:#475569;margin:0 2px">→</span>':''}`).join('');
 
-// Simulation state — inspired by app.py sim_state
-const sim={
-  tick:0, ctxSwitches:0, ganttLog:[], seq:[], seqIdx:0,
-  waitTimes:{}, turnarounds:{}, autoTimer:null,
-  COLORS:['#3B8BD4','#1D9E75','#D85A30','#7F77DD','#E24B4A','#BA7517','#D4537E','#639922']
-};
-
-const $=id=>document.getElementById(id);
-const mat=(r,c)=>Array.from({length:r},()=>Array(c).fill(0));
-const chips=seq=>seq.map((p,i)=>`<span class="chip">P${p}</span>${i<seq.length-1?'<span style="color:#475569;margin:0 2px">→</span>':''}`).join('');
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function toast(msg,type='e'){
-  let el=document.createElement('div');
-  el.className=`tn t${type}`;el.textContent=msg;$('tw').appendChild(el);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
-  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),260);},3500);
-}
-
-// ── Validation ────────────────────────────────────────────────────────────────
-function safeParse(s){
-  let p=s.trim().split(/\s+/);
-  if(!p.length||p[0]==='') return null;
-  for(let v of p) if(v===''||isNaN(Number(v))||!isFinite(Number(v))) return null;
-  return p.map(Number);
-}
-
-function validateVec(id,label){
-  let el=$(id),parsed=safeParse(el.value);
-  el.classList.remove('invalid');
-  if(!parsed||parsed.length!==M){
-    el.classList.add('invalid');
-    let m=!parsed?`${label}: non-numeric value. Use integers only.`:`${label}: expected ${M} values, got ${parsed?parsed.length:0}.`;
-    toast(m,'e');showR('err',m);log(m,'error');return null;
-  }
-  return parsed;
-}
-
-function updateHints(){
-  $('h-av').textContent=$('h-rv').textContent=`Enter exactly ${M} space-separated integers`;
-  $('max-pid').textContent=N-1;
-}
-
-// ── Tab switch ────────────────────────────────────────────────────────────────
-function sw(name,el){
-  ['tables','anim','gantt','stats','log'].forEach(t=>$('tab-'+t).style.display=t===name?'':'none');
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-}
-
-// ── Table helpers ─────────────────────────────────────────────────────────────
+function toast(msg,t='e'){let el=document.createElement('div');el.className=`tn t${t}`;el.textContent=msg;$('tw').appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),260);},3500);}
+function safeParse(s){let p=s.trim().split(/\s+/);if(!p.length||p[0]==='')return null;for(let v of p)if(v===''||isNaN(Number(v))||!isFinite(Number(v)))return null;return p.map(Number);}
+function validateVec(id,label){let el=$(id),p=safeParse(el.value);el.classList.remove('invalid');if(!p||p.length!==M){el.classList.add('invalid');let m=!p?`${label}: non-numeric value.`:`${label}: expected ${M} values, got ${p?.length||0}.`;toast(m,'e');showR('err',m);log(m,'error');return null;}return p;}
+function updateHints(){$('h-av').textContent=$('h-rv').textContent=`Enter exactly ${M} integers`;$('max-pid').textContent=N-1;}
+function sw(name,el){['tables','anim','gantt','stats','log'].forEach(t=>$('tab-'+t).style.display=t===name?'':'none');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');}
 function tblHTML(id,edit,r,c,data){
   let h=`<table><thead><tr><th>P</th>${Array.from({length:c},(_,j)=>`<th>R${j}</th>`).join('')}</tr></thead><tbody>`;
-  for(let i=0;i<r;i++){
-    h+=`<tr><td style="color:#475569;font-weight:500">P${i}</td>`;
-    for(let j=0;j<c;j++)
-      h+=edit?`<td><input id="${id}-${i}-${j}" value="${(data&&data[i])?(data[i][j]||0):0}" oninput="checkNeg(${i},${j})"></td>`:`<td id="${id}-${i}-${j}">0</td>`;
-    h+='</tr>';
-  }
+  for(let i=0;i<r;i++){h+=`<tr><td style="color:#475569;font-weight:500">P${i}</td>`;for(let j=0;j<c;j++)h+=edit?`<td><input id="${id}-${i}-${j}" value="${data?.[i]?.[j]||0}" oninput="chk(${i},${j})"></td>`:`<td id="${id}-${i}-${j}">0</td>`;h+='</tr>';}
   return h+'</tbody></table>';
 }
-
-function checkNeg(i,j){
-  let a=$('a-'+i+'-'+j),m=$('m-'+i+'-'+j);
-  if(!a||!m) return;
-  let bad=(parseInt(a.value)||0)>(parseInt(m.value)||0);
-  a.classList.toggle('neg',bad);m.classList.toggle('neg',bad);
-}
-
-function readTblRC(p,rows,cols){
-  return Array.from({length:rows},(_,i)=>Array.from({length:cols},(_,j)=>{let e=$(p+'-'+i+'-'+j);return e?(parseInt(e.value)||0):0;}));
-}
-function readTbl(p){return readTblRC(p,N,M);}
-
-function renderTables(){
-  $('ta').innerHTML=tblHTML('a',1,N,M,alloc);
-  $('tm').innerHTML=tblHTML('m',1,N,M,mx);
-  $('tn').innerHTML=tblHTML('n',0,N,M,need);
-  $('rb').style.display='none';
-  $('sn').textContent=N;$('sm').textContent=M;
-}
-
-// ── Create tables ─────────────────────────────────────────────────────────────
-function createTables(){
-  let oA=readTblRC('a',N,M),oM=readTblRC('m',N,M);
-  N=parseInt($('cn').value)||5;M=parseInt($('cm').value)||3;
-  alloc=Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oA[i]?.[j]||0));
-  mx   =Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oM[i]?.[j]||0));
-  need=mat(N,M);safetyRan=false;
-  renderTables();updateHints();calcNeed();
-  log('Tables created — values preserved','info');
-}
-
-// ── calcNeed ──────────────────────────────────────────────────────────────────
-function calcNeed(){
-  alloc=readTbl('a');mx=readTbl('m');
-  let bad=[];
-  need=alloc.map((row,i)=>row.map((_,j)=>{let v=mx[i][j]-alloc[i][j];if(v<0){bad.push(`P${i}R${j}`);return 0;}return v;}));
-  need.forEach((row,i)=>row.forEach((v,j)=>{let el=$('n-'+i+'-'+j);if(el){el.textContent=v;el.style.color=v===0?'#4ade80':'#e2e8f0';}}));
-  if(bad.length){let m=`Allocation > Max at ${bad.join(', ')}. Need clamped to 0.`;showR('warn',m);toast(m,'w');log(m,'warn');}
-  else log('Need matrix calculated','info');
-}
-
-// ── Safety algorithm ──────────────────────────────────────────────────────────
-function safeAlgo(){
-  let work=[...avail],fin=Array(N).fill(false),seq=[],slog=[],cnt=0;
-  while(cnt<N){
-    let found=false;
-    for(let i=0;i<N;i++){
-      if(!fin[i]&&need[i].every((v,j)=>v<=work[j])){
-        let wb=[...work];
-        work=work.map((w,k)=>w+alloc[i][k]);
-        slog.push({pid:i,need:need[i].slice(),wb,work:[...work]});
-        seq.push(i);fin[i]=true;found=true;cnt++;
-      }
-    }
-    if(!found)break;
-  }
-  return{safe:cnt===N,seq,slog};
-}
-
-// ── Run safety ────────────────────────────────────────────────────────────────
+function chk(i,j){let a=$('a-'+i+'-'+j),m=$('m-'+i+'-'+j);if(!a||!m)return;let bad=(parseInt(a.value)||0)>(parseInt(m.value)||0);a.classList.toggle('neg',bad);m.classList.toggle('neg',bad);}
+function rdRC(p,r,c){return Array.from({length:r},(_,i)=>Array.from({length:c},(_,j)=>{let e=$(p+'-'+i+'-'+j);return e?(parseInt(e.value)||0):0;}));}
+function rd(p){return rdRC(p,N,M);}
+function renderTbls(){$('ta').innerHTML=tblHTML('a',1,N,M,alloc);$('tm').innerHTML=tblHTML('m',1,N,M,mx);$('tn').innerHTML=tblHTML('n',0,N,M,need);$('rb').style.display='none';$('sn').textContent=N;$('sm').textContent=M;}
+function createTables(){let oA=rdRC('a',N,M),oM=rdRC('m',N,M);N=parseInt($('cn').value)||5;M=parseInt($('cm').value)||3;alloc=Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oA[i]?.[j]||0));mx=Array.from({length:N},(_,i)=>Array.from({length:M},(_,j)=>oM[i]?.[j]||0));need=mat(N,M);safetyRan=false;renderTbls();updateHints();calcNeed();log('Tables created','info');}
+function calcNeed(){alloc=rd('a');mx=rd('m');let bad=[];need=alloc.map((r,i)=>r.map((_,j)=>{let v=mx[i][j]-alloc[i][j];if(v<0){bad.push(`P${i}R${j}`);return 0;}return v;}));need.forEach((r,i)=>r.forEach((v,j)=>{let el=$('n-'+i+'-'+j);if(el){el.textContent=v;el.style.color=v===0?'#4ade80':'#e2e8f0';}}));if(bad.length){let m=`Alloc>Max at ${bad.join(', ')}. Clamped to 0.`;showR('warn',m);toast(m,'w');log(m,'warn');}else log('Need calculated','info');}
+function safeAlgo(){let work=[...avail],fin=Array(N).fill(false),seq=[],slog=[],cnt=0;while(cnt<N){let found=false;for(let i=0;i<N;i++){if(!fin[i]&&need[i].every((v,j)=>v<=work[j])){let wb=[...work];work=work.map((w,k)=>w+alloc[i][k]);slog.push({pid:i,need:need[i].slice(),wb,work:[...work]});seq.push(i);fin[i]=true;found=true;cnt++;}}if(!found)break;}return{safe:cnt===N,seq,slog};}
 function runSafety(){
-  calcNeed();
-  let av=validateVec('avail','Available');if(!av)return;
+  calcNeed();let av=validateVec('avail','Available');if(!av)return;
   avail=av;stats.c++;$('sc2').textContent=stats.c;
   let{safe,seq,slog}=safeAlgo();stepLog=slog;safetyRan=true;
-
-  // reset simulation when safety is re-run
-  sim.seq=seq;sim.seqIdx=0;sim.ganttLog=[];sim.tick=0;sim.ctxSwitches=0;
-  sim.waitTimes={};sim.turnarounds={};
-  stopAuto();
-
+  Object.assign(sim,{seq,idx:0,gl:[],tick:0,ctx:0,wt:{},ta:{}});stopAuto();
   $('rb').style.display='';
-  $('rb').innerHTML=safe
-    ?`<div class="badge ok">Safe state</div><div style="margin-top:8px">${chips(seq)}</div>`
-    :`<div class="badge err">Unsafe state — potential deadlock</div><div style="margin-top:6px;font-size:13px;color:#64748b">Partial: ${seq.map(p=>'P'+p).join(', ')||'none'}</div>`;
-  log(safe?`Safe: ${seq.map(p=>'P'+p).join(' → ')}`:'Unsafe state detected',safe?'success':'error');
-
-  buildAnimSteps(slog,seq,safe);
-  renderProcessStates(seq,safe);
-  renderGantt();
-  renderStats();
+  $('rb').innerHTML=safe?`<div class="badge ok">Safe state</div><div style="margin-top:8px">${chips(seq)}</div>`:`<div class="badge err">Unsafe — potential deadlock</div><div style="margin-top:6px;font-size:13px;color:#64748b">Partial: ${seq.map(p=>'P'+p).join(', ')||'none'}</div>`;
+  log(safe?`Safe: ${seq.map(p=>'P'+p).join(' → ')}`:'Unsafe state',safe?'success':'error');
+  buildAnim(slog,seq,safe);renderPS(seq,safe);renderGantt();renderStats();
 }
-
-// ── Process state table — like app.py process lifecycle ──────────────────────
-function renderProcessStates(seq,safe){
-  let card=$('proc-state-card');
-  card.style.display='';
-  let rows='';
-  for(let i=0;i<N;i++){
-    let pos=seq.indexOf(i);
-    let state=!safe?'<span class="pstate ps-unsafe">Unsafe</span>':
-               pos>=0?`<span class="pstate ps-seq">In sequence (#${pos+1})</span>`:
-               '<span class="pstate ps-pending">Pending</span>';
-    let needMet=need[i].every((v,j)=>v<=avail[j]);
-    rows+=`<tr>
-      <td style="font-weight:500;color:#475569">P${i}</td>
-      <td>${state}</td>
-      <td>${needMet?'<span style="color:#4ade80">✓ Yes</span>':'<span style="color:#f87171">✗ No</span>'}</td>
-      <td>${pos>=0?`Step ${pos+1} of ${seq.length}`:'—'}</td>
-    </tr>`;
-  }
-  $('proc-tbody').innerHTML=rows;
-}
-
-// ── Gantt tick step — like app.py do_step() ──────────────────────────────────
-function tickStep(){
-  if(!safetyRan){toast('Run "Check safety" first.','w');return;}
-  if(sim.seqIdx>=sim.seq.length){toast('All processes executed. Reset to re-run.','i');return;}
-
-  let pid=sim.seq[sim.seqIdx];
-  let color=sim.COLORS[pid%sim.COLORS.length];
-
-  // context switch — like app.py ctx_switches
-  if(sim.seqIdx>0) sim.ctxSwitches++;
-
-  // compute wait time for processes not yet run — like app.py wait_time
-  for(let i=0;i<N;i++){
-    if(sim.seq.indexOf(i)>sim.seqIdx) sim.waitTimes[i]=(sim.waitTimes[i]||0)+1;
-  }
-
-  sim.ganttLog.push({pid,color,tick:sim.tick});
-  sim.tick++;
-  sim.seqIdx++;
-
-  // turnaround = tick at completion — arrival (arrival=0 for all in this model)
-  if(sim.seqIdx<=sim.seq.length) sim.turnarounds[pid]=sim.tick;
-
-  log(`Tick ${sim.tick}: P${pid} executed → resources released`,'info');
-  renderGantt();
-  renderTickStats();
-
-  // auto-stop when done
-  if(sim.seqIdx>=sim.seq.length){
-    stopAuto();
-    toast('Simulation complete — all processes executed.','o');
-    log('All processes completed successfully.','success');
-  }
-}
-
-function autoStep(){
-  if(!safetyRan){toast('Run "Check safety" first.','w');return;}
-  stopAuto();
-  sim.autoTimer=setInterval(()=>{
-    if(sim.seqIdx>=sim.seq.length){stopAuto();return;}
-    tickStep();
-  },800);
-}
-
-function stopAuto(){
-  if(sim.autoTimer){clearInterval(sim.autoTimer);sim.autoTimer=null;}
-}
-
-// ── Render Gantt chart — like app.py gantt_log ────────────────────────────────
-function renderGantt(){
-  let g=$('gantt');
-  g.innerHTML='';
-  sim.ganttLog.forEach((entry,i)=>{
-    let div=document.createElement('div');
-    div.className='gc';
-    div.style.background=entry.color;
-    div.textContent=`P${entry.pid}`;
-    div.title=`P${entry.pid} executed at tick ${entry.tick}`;
-    g.appendChild(div);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>div.classList.add('show')));
-  });
-  // legend
-  let seen={},leg='';
-  sim.ganttLog.forEach(e=>{if(!seen[e.pid]){seen[e.pid]=e.color;leg+=`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;margin:2px 4px"><span style="width:10px;height:10px;border-radius:2px;background:${e.color};display:inline-block"></span>P${e.pid}</span>`;}});
-  $('gantt-legend').innerHTML=leg;
-}
-
-// ── Render tick stats ─────────────────────────────────────────────────────────
-function renderTickStats(){
-  $('tick-val').textContent=sim.tick;
-  $('ctx-val').textContent=sim.ctxSwitches;
-  $('done-val').textContent=sim.seqIdx;
-}
-
-// ── Animation tab ─────────────────────────────────────────────────────────────
-let animTimer=null;
-function buildAnimSteps(slog,seq,safe){
-  let h=slog.map((s,i)=>`<div class="step" id="s${i}"><strong style="color:#60a5fa">P${s.pid}</strong><span style="color:#64748b;font-size:12px;margin-left:8px">Need[${s.need}] ≤ Work[${s.wb}] → [${s.work}]</span></div>`).join('');
-  if(!safe) h+=`<div class="step" id="s${slog.length}" style="border-left-color:#f87171;background:rgba(239,68,68,.1)">Deadlock — no process can proceed</div>`;
-  $('steps').innerHTML=h||'<span style="color:#475569;font-size:13px">Run safety check first.</span>';
-  $('seqd').style.display=safe?'':'none';
-  if(safe)$('seqc').innerHTML=chips(seq);
-}
-
-function startAnim(){
-  if(!safetyRan){toast('Run "Check safety" first.','w');showR('warn','Run "Check safety" before animation.');return;}
-  resetAnim();
-  let rows=document.querySelectorAll('.step');if(!rows.length){runSafety();return;}
-  let i=0;
-  animTimer=setInterval(()=>{
-    if(i>0)rows[i-1].classList.replace('act','done');
-    if(i<rows.length){rows[i].classList.add('show','act');i++;}
-    else clearInterval(animTimer);
-  },700);
-}
-
-function resetAnim(){
-  clearInterval(animTimer);
-  document.querySelectorAll('.step').forEach(r=>r.classList.remove('show','act','done'));
-}
-
-// ── Resource request ──────────────────────────────────────────────────────────
-function doRequest(){
-  if(!need.length||!need[0]?.length){let m='Run "Check safety" first.';toast(m,'e');showR('err',m);return;}
-  let pid=parseInt($('rpid').value);
-  if(isNaN(pid)||pid<0||pid>=N){let m=`Invalid process index. Must be 0–${N-1}.`;toast(m,'e');showR('err',m);return;}
-  let req=validateVec('rvec','Request vector');if(!req)return;
-  let av=validateVec('avail','Available');if(!av)return;
-  avail=av;
-  for(let j=0;j<M;j++){
-    if(req[j]>need[pid][j]){deny(`R${j} exceeds need (need ${need[pid][j]}, got ${req[j]})`,'err');return;}
-    if(req[j]>avail[j])    {deny(`R${j} not available (avail ${avail[j]}, got ${req[j]})`,'warn');return;}
-  }
-  let sa=[...avail],sA=alloc[pid].slice(),sN=need[pid].slice();
-  for(let j=0;j<M;j++){avail[j]-=req[j];alloc[pid][j]+=req[j];need[pid][j]-=req[j];}
-  $('avail').value=avail.join(' ');
-  let{safe,seq}=safeAlgo();
-  if(safe){
-    stats.g++;$('sg').textContent=stats.g;
-    showR('ok',`Granted P${pid}. Sequence: ${seq.map(p=>'P'+p).join(' → ')}`);
-    toast(`Request granted for P${pid}.`,'o');
-    log(`P${pid} [${req.join(',')}] granted`,'success');
-    for(let j=0;j<M;j++){
-      let a=$('a-'+pid+'-'+j);if(a)a.value=alloc[pid][j];
-      let n=$('n-'+pid+'-'+j);if(n){n.textContent=need[pid][j];n.style.color=need[pid][j]?'#e2e8f0':'#4ade80';}
-    }
-    renderStats();
-  } else {
-    avail=sa;alloc[pid]=sA;need[pid]=sN;$('avail').value=avail.join(' ');
-    deny(`Unsafe — P${pid} request denied and rolled back`,'err');
-    toast(`Request denied for P${pid}: unsafe state.`,'e');
-  }
-}
-
-function deny(msg,type){stats.d++;$('sd').textContent=stats.d;showR(type,msg);log(msg,'error');}
-function showR(type,msg){$('rb').style.display='';$('rb').innerHTML=`<div class="badge ${type}">${msg}</div>`;}
-
-// ── Stats — inspired by app.py compute_stats() ────────────────────────────────
-function renderStats(){
-  let ta=Array(M).fill(0),tm=Array(M).fill(0);
-  alloc.forEach(r=>r.forEach((v,j)=>ta[j]+=v));
-  mx.forEach(r=>r.forEach((v,j)=>tm[j]+=v));
-  $('util').innerHTML=ta.map((v,j)=>{let p=tm[j]?Math.round(v/tm[j]*100):0;
-    return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>R${j}</span><span>${v}/${tm[j]} (${p}%)</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${p}%;height:100%;background:#3b82f6;border-radius:4px;transition:width .4s"></div></div></div>`;
-  }).join('');
-
-  // avg wait time across all processes — like avg_wt in app.py
-  let wVals=Object.values(sim.waitTimes);
-  $('avg-wt').textContent=wVals.length?Math.round(wVals.reduce((a,b)=>a+b,0)/wVals.length)+'t':'—';
-
-  // per-process turnaround bar chart — like turnaround in app.py
-  let done=Object.entries(sim.turnarounds);
-  $('ta-chart').innerHTML=done.length
-    ?done.map(([pid,ta])=>{let w=Math.min(100,ta/sim.seq.length*100);return`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>P${pid}</span><span>turnaround=${ta}t</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${w}%;height:100%;background:${sim.COLORS[pid%sim.COLORS.length]};border-radius:4px;transition:width .4s"></div></div></div>`;}).join('')
-    :'<span style="color:#475569;font-size:12px">Run Auto simulate to see turnaround data.</span>';
-}
-
-// ── Log ───────────────────────────────────────────────────────────────────────
-function log(msg,type){
-  let t=new Date().toLocaleTimeString('en-GB',{hour12:false});
-  logs.unshift({t,msg,type});if(logs.length>80)logs.pop();
-  const c={success:'#4ade80',error:'#f87171',warn:'#fbbf24',info:'#94a3b8'};
-  $('log').innerHTML=logs.map(e=>`<div class="log-e"><span style="color:#334155;margin-right:6px">${e.t}</span><span style="color:${c[e.type]||c.info}">${e.msg}</span></div>`).join('');
-}
-
-// ── Reset simulation — like app.py /api/reset ─────────────────────────────────
-function resetSim(){
-  stopAuto();
-  sim.tick=0;sim.ctxSwitches=0;sim.ganttLog=[];sim.seq=[];sim.seqIdx=0;
-  sim.waitTimes={};sim.turnarounds={};safetyRan=false;
-  logs=[];$('log').innerHTML='';
-  $('rb').style.display='none';
-  $('gantt').innerHTML='';$('gantt-legend').innerHTML='';
-  $('proc-state-card').style.display='none';
-  renderTickStats();
-  loadEx();
-  toast('Simulation reset.','i');
-}
-
-// ── Load example ──────────────────────────────────────────────────────────────
-function loadEx(){
-  N=5;M=3;$('cn').value=5;$('cm').value=3;
-  alloc=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];
-  mx   =[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];
-  need=mat(N,M);safetyRan=false;
-  renderTables();
-  $('avail').value='3 3 2';
-  ['avail','rvec'].forEach(id=>$(id).classList.remove('invalid'));
-  updateHints();
-  log('Classic example loaded (Silberschatz)','info');
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-loadEx();
-runSafety();
+function renderPS(seq,safe){$('psc').style.display='';$('pb').innerHTML=Array.from({length:N},(_,i)=>{let pos=seq.indexOf(i),met=need[i].every((v,j)=>v<=avail[j]);let s=!safe?'<span class="pstate ps-unsafe">Unsafe</span>':pos>=0?`<span class="pstate ps-seq">Seq #${pos+1}</span>`:'<span class="pstate ps-pending">Pending</span>';return`<tr><td style="font-weight:500;color:#475569">P${i}</td><td>${s}</td><td>${met?'<span style="color:#4ade80">✓</span>':'<span style="color:#f87171">✗</span>'}</td><td>${pos>=0?`${pos+1}/${seq.length}`:'—'}</td></tr>`;}).join('');}
+function tickStep(){if(!safetyRan){toast('Run Check safety first.','w');return;}if(sim.idx>=sim.seq.length){toast('All done. Reset to re-run.','i');return;}let pid=sim.seq[sim.idx],color=sim.C[pid%sim.C.length];if(sim.idx>0)sim.ctx++;for(let i=0;i<N;i++)if(sim.seq.indexOf(i)>sim.idx)sim.wt[i]=(sim.wt[i]||0)+1;sim.gl.push({pid,color,tick:sim.tick});sim.tick++;sim.idx++;sim.ta[pid]=sim.tick;log(`Tick ${sim.tick}: P${pid} executed`,'info');renderGantt();$('tv').textContent=sim.tick;$('cv').textContent=sim.ctx;$('dv').textContent=sim.idx;if(sim.idx>=sim.seq.length){stopAuto();toast('Simulation complete.','o');log('All processes done.','success');renderStats();}}
+function autoStep(){if(!safetyRan){toast('Run Check safety first.','w');return;}stopAuto();sim.timer=setInterval(()=>{if(sim.idx>=sim.seq.length){stopAuto();return;}tickStep();},800);}
+function stopAuto(){if(sim.timer){clearInterval(sim.timer);sim.timer=null;}}
+function renderGantt(){$('gantt').innerHTML='';sim.gl.forEach(e=>{let d=document.createElement('div');d.className='gc';d.style.background=e.color;d.textContent=`P${e.pid}`;d.title=`P${e.pid} tick ${e.tick}`;$('gantt').appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('show')));});let seen={},leg='';sim.gl.forEach(e=>{if(!seen[e.pid]){seen[e.pid]=1;leg+=`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;margin:2px 4px"><span style="width:10px;height:10px;border-radius:2px;background:${e.color};display:inline-block"></span>P${e.pid}</span>`;}});$('gl').innerHTML=leg;}
+function buildAnim(slog,seq,safe){let h=slog.map((s,i)=>`<div class="step" id="s${i}"><strong style="color:#60a5fa">P${s.pid}</strong><span style="color:#64748b;font-size:12px;margin-left:8px">Need[${s.need}]≤Work[${s.wb}]→[${s.work}]</span></div>`).join('');if(!safe)h+=`<div class="step" style="border-left-color:#f87171;background:rgba(239,68,68,.1)">Deadlock</div>`;$('steps').innerHTML=h||'<span style="color:#475569;font-size:13px">Run safety check first.</span>';$('seqd').style.display=safe?'':'none';if(safe)$('seqc').innerHTML=chips(seq);}
+function startAnim(){if(!safetyRan){toast('Run Check safety first.','w');return;}resetAnim();let rows=document.querySelectorAll('.step');if(!rows.length)return;let i=0;animTimer=setInterval(()=>{if(i>0)rows[i-1].classList.replace('act','done');if(i<rows.length){rows[i].classList.add('show','act');i++;}else clearInterval(animTimer);},700);}
+function resetAnim(){clearInterval(animTimer);document.querySelectorAll('.step').forEach(r=>r.classList.remove('show','act','done'));}
+function doRequest(){if(!need.length||!need[0]?.length){let m='Run Check safety first.';toast(m,'e');showR('err',m);return;}let pid=parseInt($('rpid').value);if(isNaN(pid)||pid<0||pid>=N){let m=`Invalid index. Must be 0–${N-1}.`;toast(m,'e');showR('err',m);return;}let req=validateVec('rvec','Request');if(!req)return;let av=validateVec('avail','Available');if(!av)return;avail=av;for(let j=0;j<M;j++){if(req[j]>need[pid][j]){deny(`R${j} exceeds need (${need[pid][j]})`, 'err');return;}if(req[j]>avail[j]){deny(`R${j} not available (${avail[j]})`,'warn');return;}}let sa=[...avail],sA=alloc[pid].slice(),sN=need[pid].slice();for(let j=0;j<M;j++){avail[j]-=req[j];alloc[pid][j]+=req[j];need[pid][j]-=req[j];}$('avail').value=avail.join(' ');let{safe,seq}=safeAlgo();if(safe){stats.g++;$('sg').textContent=stats.g;showR('ok',`Granted P${pid}. Seq: ${seq.map(p=>'P'+p).join('→')}`);toast(`Granted P${pid}.`,'o');log(`P${pid} granted`,'success');for(let j=0;j<M;j++){let a=$('a-'+pid+'-'+j);if(a)a.value=alloc[pid][j];let n=$('n-'+pid+'-'+j);if(n){n.textContent=need[pid][j];n.style.color=need[pid][j]?'#e2e8f0':'#4ade80';}}renderStats();}else{avail=sa;alloc[pid]=sA;need[pid]=sN;$('avail').value=avail.join(' ');deny(`Unsafe — P${pid} rolled back`,'err');toast(`Denied P${pid}: unsafe.`,'e');}}
+function deny(msg,t){stats.d++;$('sd').textContent=stats.d;showR(t,msg);log(msg,'error');}
+function showR(t,msg){$('rb').style.display='';$('rb').innerHTML=`<div class="badge ${t}">${msg}</div>`;}
+function renderStats(){let ta=Array(M).fill(0),tm=Array(M).fill(0);alloc.forEach(r=>r.forEach((v,j)=>ta[j]+=v));mx.forEach(r=>r.forEach((v,j)=>tm[j]+=v));$('util').innerHTML=ta.map((v,j)=>{let p=tm[j]?Math.round(v/tm[j]*100):0;return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>R${j}</span><span>${v}/${tm[j]} (${p}%)</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${p}%;height:100%;background:#3b82f6;border-radius:4px;transition:width .4s"></div></div></div>`;}).join('');let wv=Object.values(sim.wt);$('aw').textContent=wv.length?Math.round(wv.reduce((a,b)=>a+b,0)/wv.length)+'t':'—';let done=Object.entries(sim.ta);$('tac').innerHTML=done.length?done.map(([p,t])=>{let w=Math.min(100,t/sim.seq.length*100);return`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:3px"><span>P${p}</span><span>${t}t</span></div><div style="background:rgba(0,0,0,.3);border-radius:4px;height:7px;overflow:hidden"><div style="width:${w}%;height:100%;background:${sim.C[p%sim.C.length]};border-radius:4px;transition:width .4s"></div></div></div>`;}).join(''):'<span style="color:#475569;font-size:12px">Run Auto simulate first.</span>';}
+function log(msg,type){let t=new Date().toLocaleTimeString('en-GB',{hour12:false});logs.unshift({t,msg,type});if(logs.length>80)logs.pop();const c={success:'#4ade80',error:'#f87171',warn:'#fbbf24',info:'#94a3b8'};$('log').innerHTML=logs.map(e=>`<div class="log-e"><span style="color:#334155;margin-right:6px">${e.t}</span><span style="color:${c[e.type]||c.info}">${e.msg}</span></div>`).join('');}
+function resetSim(){stopAuto();Object.assign(sim,{tick:0,ctx:0,gl:[],seq:[],idx:0,wt:{},ta:{}});safetyRan=false;logs=[];$('log').innerHTML='';$('rb').style.display='none';$('gantt').innerHTML='';$('gl').innerHTML='';$('psc').style.display='none';$('tv').textContent=$('cv').textContent=$('dv').textContent=0;loadEx();toast('Reset.','i');}
+function loadEx(){N=5;M=3;$('cn').value=5;$('cm').value=3;alloc=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];mx=[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];need=mat(N,M);safetyRan=false;renderTbls();$('avail').value='3 3 2';['avail','rvec'].forEach(id=>$(id).classList.remove('invalid'));updateHints();log('Example loaded','info');}
+loadEx();runSafety();
 </script>
 </body>
 </html>
